@@ -13,6 +13,7 @@ import LoadingScreen from './components/LoadingScreen';
 import FormRegistration from './components/FormRegistration';
 import SuccessView from './components/SuccessView';
 import AdminPanel from './components/AdminPanel';
+import RulesEci from './components/RulesEci';
 import { RegistrationForm, RegistrationRecord } from './types';
 import { insertRegistration } from './lib/supabaseService';
 
@@ -20,7 +21,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [record, setRecord] = useState<RegistrationRecord | null>(null);
-  const [currentView, setCurrentView] = useState<'public' | 'admin'>('public');
+  const [currentView, setCurrentView] = useState<'public' | 'admin' | 'rules'>('public');
 
   // Load persistence from local storage on bootstrap
   useEffect(() => {
@@ -117,16 +118,32 @@ export default function App() {
               </div>
 
               {/* Actions & Status Indicator */}
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <button
+                  id="toggle-rules-btn"
+                  onClick={() => setCurrentView(prev => prev === 'rules' ? 'public' : 'rules')}
+                  className={`px-2.5 sm:px-3 py-1.5 border text-[10.5px] sm:text-[11.5px] font-mono font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer flex items-center space-x-1 ${
+                    currentView === 'rules'
+                      ? 'border-sky-600 bg-sky-600 text-white'
+                      : 'border-slate-200/85 bg-white hover:border-sky-200 hover:bg-sky-50 text-slate-500 hover:text-sky-700'
+                  }`}
+                >
+                  <span>Aturan</span>
+                </button>
+
                 <button
                   id="toggle-admin-btn"
                   onClick={() => setCurrentView(prev => prev === 'admin' ? 'public' : 'admin')}
-                  className="px-3 py-1.5 border border-slate-200/80 hover:border-sky-200 hover:bg-sky-50 text-[11.5px] font-mono font-bold uppercase tracking-wider text-slate-500 hover:text-sky-700 rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
+                  className={`px-2.5 sm:px-3 py-1.5 border text-[10.5px] sm:text-[11.5px] font-mono font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer flex items-center space-x-1 ${
+                    currentView === 'admin'
+                      ? 'border-sky-600 bg-sky-600 text-white'
+                      : 'border-slate-200/85 bg-white hover:border-sky-200 hover:bg-sky-50 text-slate-500 hover:text-sky-700'
+                  }`}
                 >
-                  <span>{currentView === 'admin' ? 'Formulir' : 'Kelola (Admin)'}</span>
+                  <span>{currentView === 'admin' ? 'Formulir' : 'Kelola'}</span>
                 </button>
 
-                <div className="flex items-center space-x-1.5 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-100/40">
+                <div className="hidden md:flex items-center space-x-1.5 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-100/40 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-pulse"></span>
                   <span className="text-[9.5px] font-mono text-sky-700 uppercase tracking-wider font-semibold">POR-SEL 2026</span>
                 </div>
@@ -140,7 +157,18 @@ export default function App() {
             
             {/* View router condition */}
             <AnimatePresence mode="wait">
-              {currentView === 'admin' ? (
+              {currentView === 'rules' ? (
+                <motion.div
+                  key="rules-view"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  className="w-full"
+                >
+                  <RulesEci onBack={() => setCurrentView('public')} />
+                </motion.div>
+              ) : currentView === 'admin' ? (
                 <motion.div
                   key="admin-panel-view"
                   initial={{ opacity: 0, y: 15 }}
@@ -181,8 +209,8 @@ export default function App() {
                   {/* Trust Indicators / Stats */}
                   <div className="grid grid-cols-3 gap-6 max-w-lg w-full px-6 py-6 border-t border-slate-150/70 text-center mt-10">
                     <div>
-                      <span className="block text-[13px] font-bold text-slate-900 font-heading">90+</span>
-                      <span className="text-[9px] text-slate-400 font-mono tracking-wider uppercase">Anggota Aktif</span>
+                      <span className="block text-[13px] font-bold text-slate-900 font-heading">15,000+</span>
+                      <span className="text-[9px] text-slate-400 font-mono tracking-wider uppercase">Alumni & Anggota</span>
                     </div>
                     <div>
                       <span className="block text-[13px] font-bold text-slate-900 font-heading">8+</span>
@@ -220,12 +248,17 @@ export default function App() {
         <footer className="w-full py-5 border-t border-slate-100 bg-white text-center mt-12">
           <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-slate-400 tracking-wide font-smooth">
             <p>© 2026 Education Community Indonesia (ECI). All Rights Reserved.</p>
-            <div className="flex space-x-4">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center items-center">
               <span className="hover:text-slate-600 transition-colors uppercase font-mono text-[9px]">Hubungi Kami</span>
               <span className="text-slate-200">•</span>
               <span className="hover:text-slate-600 transition-colors uppercase font-mono text-[9px]">Kebijakan Privasi</span>
               <span className="text-slate-200">•</span>
-              <span className="hover:text-slate-600 transition-colors uppercase font-mono text-[9px]">Pedoman Komunitas</span>
+              <button 
+                onClick={() => setCurrentView('rules')}
+                className="hover:text-sky-600 text-sky-500 font-bold transition-colors uppercase font-mono text-[9px] cursor-pointer"
+              >
+                Pedoman Komunitas (Rules ECI)
+              </button>
             </div>
           </div>
         </footer>
