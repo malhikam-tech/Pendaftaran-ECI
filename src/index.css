@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-heading: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-eci-dark: #0F172A;
+  --color-eci-accent: #0284C7; /* Bright sky-blue */
+  --color-eci-light: #F8FAFC;
+  --color-eci-emerald: #10B981;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #FAFAFB;
+  color: #0F172A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth custom styles for modern layout */
+::selection {
+  background-color: rgba(2, 132, 199, 0.15);
+  color: #0284C7;
+}
+
+/* Custom glassmorphism or minimalist cards */
+.glass-panel {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.shadow-soft {
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.015), 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.shadow-card {
+  box-shadow: 0 10px 45px -12px rgba(15, 23, 42, 0.04), 0 4px 12px -4px rgba(15, 23, 42, 0.02);
+}
+
+/* Smooth fonts classes */
+.font-smooth {
+  letter-spacing: -0.011em;
+  font-weight: 400;
+}
+
+/* Scrollbar tweaks */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #CBD5E1;
+}

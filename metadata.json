@@ -1,0 +1,6 @@
+{
+  "name": "Pendaftaran ECI",
+  "description": "Website pendaftaran resmi Komunitas Education Community Indonesia (ECI) dengan desain minimalis, modern, dan interaktif.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
