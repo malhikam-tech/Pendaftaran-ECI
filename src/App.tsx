@@ -7,16 +7,20 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   GraduationCap, Target, Users, BookOpen, 
-  MapPin, Globe, Sparkles, MessageSquare 
+  MapPin, Globe, Sparkles, MessageSquare, ShieldAlert, RefreshCw
 } from 'lucide-react';
 import LoadingScreen from './components/LoadingScreen';
 import FormRegistration from './components/FormRegistration';
 import SuccessView from './components/SuccessView';
+import AdminPanel from './components/AdminPanel';
 import { RegistrationForm, RegistrationRecord } from './types';
+import { insertRegistration } from './lib/supabaseService';
 
 export default function App() {
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [record, setRecord] = useState<RegistrationRecord | null>(null);
+  const [currentView, setCurrentView] = useState<'public' | 'admin'>('public');
 
   // Load persistence from local storage on bootstrap
   useEffect(() => {
@@ -30,7 +34,8 @@ export default function App() {
     }
   }, []);
 
-  const handleRegistrationSubmit = (formData: RegistrationForm) => {
+  const handleRegistrationSubmit = async (formData: RegistrationForm) => {
+    setIsSaving(true);
     // Generate a beautiful, unique registration ID
     // Format: ECI-YYYY-RANDOM_HEX
     const today = new Date('2026-05-21'); // Consistent local timestamp
@@ -51,6 +56,12 @@ export default function App() {
       registrationDate: registrationDateStr
     };
 
+    // Save to Supabase (primary database)
+    const dbSaved = await insertRegistration(newRecord);
+    if (!dbSaved) {
+      console.warn("Peringatan: Gagal mengunggah ke database online Supabase. Data disimpan secara lokal di browser Anda.");
+    }
+
     // Save to local storage for persistence
     try {
       localStorage.setItem('eci_registration_record', JSON.stringify(newRecord));
@@ -59,6 +70,7 @@ export default function App() {
     }
 
     setRecord(newRecord);
+    setIsSaving(false);
   };
 
   const handleResetRecord = () => {
@@ -104,10 +116,20 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Status Indicator */}
-              <div className="flex items-center space-x-1.5 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-100/40">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-pulse"></span>
-                <span className="text-[9.5px] font-mono text-sky-700 uppercase tracking-wider font-semibold">POR-SEL 2026</span>
+              {/* Actions & Status Indicator */}
+              <div className="flex items-center space-x-3">
+                <button
+                  id="toggle-admin-btn"
+                  onClick={() => setCurrentView(prev => prev === 'admin' ? 'public' : 'admin')}
+                  className="px-3 py-1.5 border border-slate-200/80 hover:border-sky-200 hover:bg-sky-50 text-[11.5px] font-mono font-bold uppercase tracking-wider text-slate-500 hover:text-sky-700 rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
+                >
+                  <span>{currentView === 'admin' ? 'Formulir' : 'Kelola (Admin)'}</span>
+                </button>
+
+                <div className="flex items-center space-x-1.5 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-100/40">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-pulse"></span>
+                  <span className="text-[9.5px] font-mono text-sky-700 uppercase tracking-wider font-semibold">POR-SEL 2026</span>
+                </div>
               </div>
 
             </div>
@@ -118,7 +140,18 @@ export default function App() {
             
             {/* View router condition */}
             <AnimatePresence mode="wait">
-              {!record ? (
+              {currentView === 'admin' ? (
+                <motion.div
+                  key="admin-panel-view"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  className="w-full"
+                >
+                  <AdminPanel onBack={() => setCurrentView('public')} />
+                </motion.div>
+              ) : !record ? (
                 // Form View state
                 <motion.div
                   key="form-view"
@@ -148,7 +181,7 @@ export default function App() {
                   {/* Trust Indicators / Stats */}
                   <div className="grid grid-cols-3 gap-6 max-w-lg w-full px-6 py-6 border-t border-slate-150/70 text-center mt-10">
                     <div>
-                      <span className="block text-[13px] font-bold text-slate-900 font-heading">90+</span>
+                      <span className="block text-[13px] font-bold text-slate-900 font-heading">15,000+</span>
                       <span className="text-[9px] text-slate-400 font-mono tracking-wider uppercase">Alumni & Anggota</span>
                     </div>
                     <div>
@@ -196,6 +229,19 @@ export default function App() {
             </div>
           </div>
         </footer>
+      )}
+
+      {/* Absolute Saving Overlay */}
+      {isSaving && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-6 shadow-xl max-w-xs text-center border border-slate-100 flex flex-col items-center">
+            <RefreshCw className="w-8 h-8 text-sky-600 animate-spin mb-4" />
+            <h4 className="text-xs font-bold text-slate-900 font-heading uppercase tracking-wider">Mengirim Formulir...</h4>
+            <p className="text-[10.5px] text-slate-400 mt-2 leading-relaxed">
+              Pendaftaran Anda sedang didaftarkan ke cloud database Supabase. Mohon tunggu beberapa saat.
+            </p>
+          </div>
+        </div>
       )}
 
     </div>
