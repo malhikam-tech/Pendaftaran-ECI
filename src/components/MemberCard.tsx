@@ -14,8 +14,34 @@ interface MemberCardProps {
 
 export default function MemberCard({ record }: MemberCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [scale, setScale] = useState(1);
+
+  // Calculate dynamic scale factor based on parent width
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        if (containerWidth < 345) {
+          setScale(containerWidth / 345);
+        } else {
+          setScale(1);
+        }
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    
+    const timer = setTimeout(handleResize, 150);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
 
   // Download Member Card layout as high-res PNG image
   const handleDownload = async () => {
@@ -23,6 +49,18 @@ export default function MemberCard({ record }: MemberCardProps) {
     try {
       setDownloading(true);
       
+      // Save current scale style properties for restoration
+      const originalTransform = cardRef.current.style.transform;
+      const originalTransformOrigin = cardRef.current.style.transformOrigin;
+      const originalWidth = cardRef.current.style.width;
+      const originalHeight = cardRef.current.style.height;
+
+      // Temporarily remove scale transformations to snapshot full quality element
+      cardRef.current.style.transform = 'none';
+      cardRef.current.style.transformOrigin = '';
+      cardRef.current.style.width = '340px';
+      cardRef.current.style.height = '540px';
+
       const canvas = await html2canvas(cardRef.current, {
         scale: 3, // Very high definition render for crispy text
         useCORS: true,
@@ -30,6 +68,12 @@ export default function MemberCard({ record }: MemberCardProps) {
         backgroundColor: null, // Transparent card corners
         logging: false,
       });
+
+      // Restore scale transformations immediately
+      cardRef.current.style.transform = originalTransform;
+      cardRef.current.style.transformOrigin = originalTransformOrigin;
+      cardRef.current.style.width = originalWidth;
+      cardRef.current.style.height = originalHeight;
 
       const imgData = canvas.toDataURL('image/png');
       const link = document.createElement('a');
@@ -50,12 +94,21 @@ export default function MemberCard({ record }: MemberCardProps) {
     <div className="w-full flex flex-col items-center">
       
       {/* Aspect Ratio limited container */}
-      <div className="w-full max-w-sm flex justify-center py-2 overflow-hidden">
+      <div 
+        ref={containerRef}
+        className="w-full max-w-sm flex justify-center py-2 overflow-hidden"
+        style={{ height: `${555 * scale}px` }}
+      >
         
         {/* Sleek Vertical ECI Member Card */}
         <div
           ref={cardRef}
           id="member-id-card"
+          style={{ 
+            transform: `scale(${scale})`, 
+            transformOrigin: 'top center',
+            transition: 'transform 0.15s ease-out-back'
+          }}
           className="relative w-[340px] h-[540px] rounded-3xl bg-white border border-slate-200 p-6 flex flex-col justify-between overflow-hidden shadow-xl shadow-slate-100/50 select-none shrink-0"
         >
           {/* Decorative Top Glowing Arcs */}

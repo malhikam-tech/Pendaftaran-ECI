@@ -14,8 +14,36 @@ interface SuratFormulirProps {
 
 export default function SuratFormulir({ record }: SuratFormulirProps) {
   const paperRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [scale, setScale] = useState(1);
+
+  // Calculate dynamic scale factor based on parent width
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        if (containerWidth < 720) {
+          setScale(containerWidth / 720);
+        } else {
+          setScale(1);
+        }
+      }
+    };
+
+    // Run initially & bind resize listener
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    
+    // Quick timeout fallback in case of dynamic viewport setup lag
+    const timer = setTimeout(handleResize, 150);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
 
   // Function to download the printable sheet as a PNG image
   const handleDownload = async () => {
@@ -23,6 +51,18 @@ export default function SuratFormulir({ record }: SuratFormulirProps) {
     try {
       setDownloading(true);
       
+      // Save current scale style properties
+      const originalTransform = paperRef.current.style.transform;
+      const originalTransformOrigin = paperRef.current.style.transformOrigin;
+      const originalWidth = paperRef.current.style.width;
+      const originalMinHeight = paperRef.current.style.minHeight;
+
+      // Temporarily restore original size and remove transform scales for crisp high DPI render
+      paperRef.current.style.transform = 'none';
+      paperRef.current.style.transformOrigin = '';
+      paperRef.current.style.width = '720px';
+      paperRef.current.style.minHeight = '920px';
+
       // Calculate optimized scaling for beautiful resolution
       const canvas = await html2canvas(paperRef.current, {
         scale: 2, // High DPI rendering
@@ -31,6 +71,12 @@ export default function SuratFormulir({ record }: SuratFormulirProps) {
         backgroundColor: '#FFFFFF',
         logging: false,
       });
+
+      // Restore scale transformations immediately after snapshotting
+      paperRef.current.style.transform = originalTransform;
+      paperRef.current.style.transformOrigin = originalTransformOrigin;
+      paperRef.current.style.width = originalWidth;
+      paperRef.current.style.minHeight = originalMinHeight;
 
       // Construct file link and trigger
       const imgData = canvas.toDataURL('image/png');
@@ -52,11 +98,20 @@ export default function SuratFormulir({ record }: SuratFormulirProps) {
     <div className="w-full flex flex-col items-center">
       
       {/* Interactive print wrapper */}
-      <div className="w-full overflow-x-auto pb-4 flex justify-center">
-        {/* The formal letter paper container */}
+      <div 
+        ref={containerRef}
+        className="w-full overflow-hidden pb-4 flex justify-center"
+        style={{ height: `${930 * scale}px` }}
+      >
+        {/* The formal letter paper container with dynamic dynamic scale transform */}
         <div 
           ref={paperRef}
           id="formal-letter-card" 
+          style={{ 
+            transform: `scale(${scale})`, 
+            transformOrigin: 'top center',
+            transition: 'transform 0.15s ease-out-back'
+          }}
           className="w-[720px] min-h-[920px] bg-white p-12 text-slate-800 font-sans shadow-lg shadow-slate-100 border border-slate-200/60 shrink-0 select-none relative"
         >
           {/* Watermark of ECI (Subtle, professional) */}
