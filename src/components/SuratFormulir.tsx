@@ -135,7 +135,7 @@ export default function SuratFormulir({ record }: SuratFormulirProps) {
                   Yayasan Pembinaan dan Pemberdayaan Pendidikan Indonesia
                 </p>
                 <p className="text-[8px] text-slate-400 font-mono mt-0.5 uppercase">
-                  Website: eci-community.or.id | Email: info@eci-community.or.id
+                  Website: eci-community.vercel.app | Email: ecicommunity@gmail.com
                 </p>
               </div>
             </div>
@@ -238,8 +238,8 @@ export default function SuratFormulir({ record }: SuratFormulirProps) {
                 <span className="font-mono text-slate-400 text-[8.5px] block absolute right-4 bottom-0">Tanda Tangan Digital</span>
               </div>
 
-              <p className="font-bold text-slate-900 uppercase">M. Fadhil Rahman</p>
-              <p className="text-[9px] text-slate-400 font-mono">Ketua Umum ECI Pusat</p>
+              <p className="font-bold text-slate-900 uppercase">✜ 𝘒𝘴𝘦𝘯𝘴 𝘚𝘤𝘩𝘸𝘢𝘳𝘻𝘳𝘪𝘵𝘵𝘦𝘳</p>
+              <p className="text-[9px] text-slate-400 font-mono">Kaiser/Pemimpin tertinggi ECI</p>
             </div>
           </div>
 
