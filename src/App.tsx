@@ -181,8 +181,8 @@ export default function App() {
                   {/* Trust Indicators / Stats */}
                   <div className="grid grid-cols-3 gap-6 max-w-lg w-full px-6 py-6 border-t border-slate-150/70 text-center mt-10">
                     <div>
-                      <span className="block text-[13px] font-bold text-slate-900 font-heading">15,000+</span>
-                      <span className="text-[9px] text-slate-400 font-mono tracking-wider uppercase">Alumni & Anggota</span>
+                      <span className="block text-[13px] font-bold text-slate-900 font-heading">90+</span>
+                      <span className="text-[9px] text-slate-400 font-mono tracking-wider uppercase">Anggota Aktif</span>
                     </div>
                     <div>
                       <span className="block text-[13px] font-bold text-slate-900 font-heading">8+</span>
