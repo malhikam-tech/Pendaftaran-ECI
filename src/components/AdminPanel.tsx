@@ -564,103 +564,196 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-150 text-[10px] text-slate-400 font-mono tracking-wider uppercase">
-                      <th className="px-5 py-3 font-semibold">Foto</th>
-                      <th className="px-5 py-3 font-semibold">ID & Tanggal</th>
-                      <th className="px-5 py-3 font-semibold">Nama Lengkap</th>
-                      <th className="px-5 py-3 font-semibold">Profil Demografis</th>
-                      <th className="px-5 py-3 font-semibold">Minat Spesifik</th>
-                      <th className="px-5 py-3 font-semibold text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                    {sortedRecords.map((record) => (
-                      <tr 
-                        id={`row-record-${record.id}`}
-                        key={record.id} 
-                        className="hover:bg-slate-50/60 transition-colors"
-                      >
-                        {/* Profile Picture thumbnail */}
-                        <td className="px-5 py-3 shrink-0">
-                          <div className="w-9 h-9 rounded-full border border-slate-150 p-0.5 bg-white overflow-hidden shadow-soft">
+              <>
+                {/* Desktop Table View (Visible starting at md screens) */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-150 text-[10px] text-slate-400 font-mono tracking-wider uppercase">
+                        <th className="px-5 py-3 font-semibold">Foto</th>
+                        <th className="px-5 py-3 font-semibold">ID & Tanggal</th>
+                        <th className="px-5 py-3 font-semibold">Nama Lengkap</th>
+                        <th className="px-5 py-3 font-semibold">Profil Demografis</th>
+                        <th className="px-5 py-3 font-semibold">Minat Spesifik</th>
+                        <th className="px-5 py-3 font-semibold text-right">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+                      {sortedRecords.map((record) => (
+                        <tr 
+                          id={`row-record-${record.id}`}
+                          key={record.id} 
+                          className="hover:bg-slate-50/60 transition-colors"
+                        >
+                          {/* Profile Picture thumbnail */}
+                          <td className="px-5 py-3 shrink-0">
+                            <div className="w-9 h-9 rounded-full border border-slate-150 p-0.5 bg-white overflow-hidden shadow-soft">
+                              <img 
+                                src={record.profilePicture} 
+                                alt="Thumbnail" 
+                                className="w-full h-full object-cover rounded-full"
+                                onError={(e) => {
+                                  // Fallback avatar if error
+                                  (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(record.fullName)}`;
+                                }}
+                              />
+                            </div>
+                          </td>
+
+                          {/* Unique ID & Submission Date */}
+                          <td className="px-5 py-3 font-mono">
+                            <span className="block font-bold text-slate-900 tracking-tight">{record.id}</span>
+                            <span className="text-[9px] text-slate-450">{record.registrationDate}</span>
+                          </td>
+
+                          {/* Name (bold & clean) */}
+                          <td className="px-5 py-3 font-medium text-slate-905 font-heading">
+                            {record.fullName}
+                          </td>
+
+                          {/* Demographic: Gender & Occupation */}
+                          <td className="px-5 py-3 space-y-1">
+                            <span className="block">{record.birthDate}</span>
+                            <div className="flex flex-wrap items-center gap-1.5 text-[9.5px] font-mono">
+                              <span className={`px-1.5 py-0.5 rounded leading-none ${record.gender === 'Laki-laki' ? 'bg-sky-50 text-sky-700 border border-sky-100' : 'bg-pink-50 text-pink-700 border border-pink-100'}`}>
+                                {record.gender}
+                              </span>
+                              <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded leading-none">
+                                {record.status}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Interest details */}
+                          <td className="px-5 py-3 max-w-[200px]">
+                            <span className="block font-semibold text-indigo-600 truncate">{record.interest}</span>
+                            <span className="text-[10px] text-slate-400 block truncate" title={record.interestKnowledge}>
+                              {record.interestKnowledge}
+                            </span>
+                          </td>
+
+                          {/* Actions triggers */}
+                          <td className="px-5 py-3 text-right">
+                            <div className="flex items-center justify-end space-x-1.5">
+                              
+                              {/* Inspect credential form & member card */}
+                              <button
+                                id={`inspect-btn-${record.id}`}
+                                onClick={() => setSelectedRecord(record)}
+                                className="p-1.5 hover:bg-sky-50 text-sky-600 hover:text-sky-700 rounded-md transition-colors border border-transparent hover:border-sky-100/40"
+                                title="Lihat & Download Kartu / Dokumen"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+
+                              {/* Delete submission */}
+                              <button
+                                id={`delete-btn-${record.id}`}
+                                onClick={() => setRecordToDelete(record)}
+                                className="p-1.5 hover:bg-rose-50 text-rose-500 hover:text-rose-600 rounded-md transition-colors border border-transparent hover:border-rose-100/40"
+                                title="Hapus Registrasi"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Cards View (Visible on mobile screens) */}
+                <div className="block md:hidden divide-y divide-slate-100">
+                  {sortedRecords.map((record) => (
+                    <div 
+                      id={`card-record-${record.id}`}
+                      key={record.id} 
+                      className="p-5 hover:bg-slate-50/40 transition-colors space-y-4"
+                    >
+                      {/* Header: Photo, Name, and Quick Actions */}
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3.5">
+                          <div className="w-11 h-11 rounded-full border border-slate-150 p-0.5 bg-white overflow-hidden shadow-soft shrink-0">
                             <img 
                               src={record.profilePicture} 
                               alt="Thumbnail" 
                               className="w-full h-full object-cover rounded-full"
                               onError={(e) => {
-                                // Fallback avatar if error
                                 (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(record.fullName)}`;
                               }}
                             />
                           </div>
-                        </td>
-
-                        {/* Unique ID & Submission Date */}
-                        <td className="px-5 py-3 font-mono">
-                          <span className="block font-bold text-slate-900 tracking-tight">{record.id}</span>
-                          <span className="text-[9px] text-slate-450">{record.registrationDate}</span>
-                        </td>
-
-                        {/* Name (bold & clean) */}
-                        <td className="px-5 py-3 font-medium text-slate-905 font-heading">
-                          {record.fullName}
-                        </td>
-
-                        {/* Demographic: Gender & Occupation */}
-                        <td className="px-5 py-3 space-y-1">
-                          <span className="block">{record.birthDate}</span>
-                          <div className="flex flex-wrap items-center gap-1.5 text-[9.5px] font-mono">
-                            <span className={`px-1.5 py-0.5 rounded leading-none ${record.gender === 'Laki-laki' ? 'bg-sky-50 text-sky-700 border border-sky-100' : 'bg-pink-50 text-pink-700 border border-pink-100'}`}>
-                              {record.gender}
-                            </span>
-                            <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded leading-none">
-                              {record.status}
+                          <div>
+                            <h4 className="font-bold text-slate-900 font-heading text-[13px] leading-tight">
+                              {record.fullName}
+                            </h4>
+                            <span className="font-mono text-[9px] text-sky-600 font-bold block mt-0.5">
+                              {record.id}
                             </span>
                           </div>
-                        </td>
+                        </div>
+                        
+                        {/* Top-Right Actions */}
+                        <div className="flex items-center space-x-1.5 bg-slate-50 border border-slate-100 rounded-lg p-1">
+                          <button
+                            id={`inspect-btn-mobile-${record.id}`}
+                            onClick={() => setSelectedRecord(record)}
+                            className="p-1.5 hover:bg-white text-sky-600 rounded-md transition-all shrink-0"
+                            title="Lihat & Download"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            id={`delete-btn-mobile-${record.id}`}
+                            onClick={() => setRecordToDelete(record)}
+                            className="p-1.5 hover:bg-white text-rose-500 rounded-md transition-all shrink-0"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
 
-                        {/* Interest details */}
-                        <td className="px-5 py-3 max-w-[200px]">
-                          <span className="block font-semibold text-indigo-600 truncate">{record.interest}</span>
-                          <span className="text-[10px] text-slate-400 block truncate" title={record.interestKnowledge}>
-                            {record.interestKnowledge}
+                      {/* Info grid */}
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-[10.5px] bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                        <div>
+                          <span className="text-[8px] text-slate-400 font-mono uppercase tracking-wider block">Tanggal Lahir</span>
+                          <span className="font-medium text-slate-700">{record.birthDate}</span>
+                        </div>
+                        <div>
+                          <span className="text-[8px] text-slate-400 font-mono uppercase tracking-wider block">Gender</span>
+                          <span className={`inline-block px-1.5 py-0.5 mt-0.5 rounded leading-none text-[9px] font-mono ${
+                            record.gender === 'Laki-laki' ? 'bg-sky-50 text-sky-700 border border-sky-100' : 'bg-pink-50 text-pink-700 border border-pink-100'
+                          }`}>
+                            {record.gender}
                           </span>
-                        </td>
+                        </div>
+                        <div>
+                          <span className="text-[8px] text-slate-400 font-mono uppercase tracking-wider block">Status Kesibukan</span>
+                          <span className="font-medium text-slate-700">{record.status}</span>
+                        </div>
+                        <div>
+                          <span className="text-[8px] text-slate-400 font-mono uppercase tracking-wider block">Tanggal Registrasi</span>
+                          <span className="font-medium text-slate-600">{record.registrationDate}</span>
+                        </div>
+                      </div>
 
-                        {/* Actions triggers */}
-                        <td className="px-5 py-3 text-right">
-                          <div className="flex items-center justify-end space-x-1.5">
-                            
-                            {/* Inspect credential form & member card */}
-                            <button
-                              id={`inspect-btn-${record.id}`}
-                              onClick={() => setSelectedRecord(record)}
-                              className="p-1.5 hover:bg-sky-50 text-sky-600 hover:text-sky-700 rounded-md transition-colors border border-transparent hover:border-sky-100/40"
-                              title="Lihat & Download Kartu / Dokumen"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-
-                            {/* Delete submission */}
-                            <button
-                              id={`delete-btn-${record.id}`}
-                              onClick={() => setRecordToDelete(record)}
-                              className="p-1.5 hover:bg-rose-50 text-rose-500 hover:text-rose-600 rounded-md transition-colors border border-transparent hover:border-rose-100/40"
-                              title="Hapus Registrasi"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                      {/* Interest Chosen */}
+                      <div className="text-[11px]">
+                        <span className="text-[8px] text-slate-400 font-mono uppercase tracking-wider block mb-0.5">Bidang Minat Terpilih</span>
+                        <span className="font-bold text-indigo-600 text-[11px] block">{record.interest}</span>
+                        {record.interestKnowledge && (
+                          <p className="text-[10px] text-slate-400 font-smooth italic mt-1 bg-white p-2 rounded border border-slate-100/60 line-clamp-2">
+                            "{record.interestKnowledge}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 

@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, Calendar, ShieldCheck, Upload, Info, 
   ChevronRight, ChevronLeft, CheckCircle, Image as ImageIcon,
-  Heart, Compass, HelpCircle, Briefcase, GraduationCap, X
+  Heart, Compass, HelpCircle, Briefcase, GraduationCap, X, ChevronDown
 } from 'lucide-react';
 import { RegistrationForm } from '../types';
 
@@ -372,21 +372,26 @@ export default function FormRegistration({ onSubmit }: FormRegistrationProps) {
                     <label htmlFor="gender" className="block text-[11px] font-medium tracking-wider text-slate-500 uppercase mb-1.5">
                       Gender / Jenis Kelamin <span className="text-rose-500">*</span>
                     </label>
-                    <select
-                      id="gender"
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleInputChange}
-                      className={`w-full text-xs font-smooth px-3.5 py-2.5 rounded-lg border transition-all duration-200 focus:outline-none bg-slate-50/50 appearance-none cursor-pointer ${
-                        errors.gender 
-                          ? 'border-rose-400 focus:border-rose-500' 
-                          : 'border-slate-200 focus:border-sky-500'
-                      }`}
-                    >
-                      <option value="">Pilih Gender</option>
-                      <option value="Laki-laki">Laki-laki</option>
-                      <option value="Perempuan">Perempuan</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        id="gender"
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                        className={`w-full text-xs font-smooth pl-3.5 pr-10 py-2.5 rounded-lg border transition-all duration-200 focus:outline-none bg-slate-50/50 appearance-none cursor-pointer ${
+                          errors.gender 
+                            ? 'border-rose-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10' 
+                            : 'border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+                        }`}
+                      >
+                        <option value="">Pilih Gender</option>
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                        <ChevronDown className="w-4 h-4" />
+                      </div>
+                    </div>
                     {errors.gender && (
                       <motion.p initial={{ opacity: 0, y: -2 }} animate={{ opacity: 1, y: 0 }} className="text-[10px] text-rose-500 mt-1.5 flex items-center">
                         <span className="w-1 h-1 rounded-full bg-rose-500 mr-1.5 inline-block"></span>
@@ -400,22 +405,27 @@ export default function FormRegistration({ onSubmit }: FormRegistrationProps) {
                     <label htmlFor="status" className="block text-[11px] font-medium tracking-wider text-slate-500 uppercase mb-1.5">
                       Status Kesibukan <span className="text-rose-500">*</span>
                     </label>
-                    <select
-                      id="status"
-                      name="status"
-                      value={formData.status}
-                      onChange={handleInputChange}
-                      className={`w-full text-xs font-smooth px-3.5 py-2.5 rounded-lg border transition-all duration-200 focus:outline-none bg-slate-50/50 appearance-none cursor-pointer ${
-                        errors.status 
-                          ? 'border-rose-400 focus:border-rose-500' 
-                          : 'border-slate-200 focus:border-sky-500'
-                      }`}
-                    >
-                      <option value="">Pilih Kesibukan</option>
-                      {statusOptions.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        id="status"
+                        name="status"
+                        value={formData.status}
+                        onChange={handleInputChange}
+                        className={`w-full text-xs font-smooth pl-3.5 pr-10 py-2.5 rounded-lg border transition-all duration-200 focus:outline-none bg-slate-50/50 appearance-none cursor-pointer ${
+                          errors.status 
+                            ? 'border-rose-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10' 
+                            : 'border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+                        }`}
+                      >
+                        <option value="">Pilih Kesibukan</option>
+                        {statusOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                        <ChevronDown className="w-4 h-4" />
+                      </div>
+                    </div>
                     {errors.status && (
                       <motion.p initial={{ opacity: 0, y: -2 }} animate={{ opacity: 1, y: 0 }} className="text-[10px] text-rose-500 mt-1.5 flex items-center">
                         <span className="w-1 h-1 rounded-full bg-rose-500 mr-1.5 inline-block"></span>
@@ -458,22 +468,27 @@ export default function FormRegistration({ onSubmit }: FormRegistrationProps) {
                   <label htmlFor="interest" className="block text-[11px] font-medium tracking-wider text-slate-500 uppercase mb-1.5">
                     Bidang Minat Komunitas <span className="text-rose-500">*</span>
                   </label>
-                  <select
-                    id="interest"
-                    name="interest"
-                    value={formData.interest}
-                    onChange={handleInputChange}
-                    className={`w-full text-xs font-smooth px-3.5 py-2.5 rounded-lg border transition-all duration-200 focus:outline-none bg-slate-50/50 appearance-none cursor-pointer ${
-                      errors.interest 
-                        ? 'border-rose-400 focus:border-rose-500' 
-                        : 'border-slate-200 focus:border-sky-500'
-                    }`}
-                  >
-                    <option value="">Pilih Bidang Minat</option>
-                    {interestOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="interest"
+                      name="interest"
+                      value={formData.interest}
+                      onChange={handleInputChange}
+                      className={`w-full text-xs font-smooth pl-3.5 pr-10 py-2.5 rounded-lg border transition-all duration-200 focus:outline-none bg-slate-50/50 appearance-none cursor-pointer ${
+                        errors.interest 
+                          ? 'border-rose-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10' 
+                          : 'border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10'
+                      }`}
+                    >
+                      <option value="">Pilih Bidang Minat</option>
+                      {interestOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                      <ChevronDown className="w-4 h-4" />
+                    </div>
+                  </div>
                   {errors.interest && (
                     <motion.p initial={{ opacity: 0, y: -2 }} animate={{ opacity: 1, y: 0 }} className="text-[10px] text-rose-500 mt-1.5 flex items-center">
                       <span className="w-1 h-1 rounded-full bg-rose-500 mr-1.5 inline-block"></span>
