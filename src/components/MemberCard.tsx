@@ -44,6 +44,8 @@ export default function MemberCard({ record }: MemberCardProps) {
   }, []);
 
   // Download Member Card layout as high-res PNG image
+  const [fallbackCardImage, setFallbackCardImage] = useState<string | null>(null);
+
   const handleDownload = async () => {
     if (!cardRef.current) return;
     try {
@@ -75,14 +77,38 @@ export default function MemberCard({ record }: MemberCardProps) {
       cardRef.current.style.width = originalWidth;
       cardRef.current.style.height = originalHeight;
 
-      const imgData = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `Member_Card_ECI_${record.fullName.replace(/\s+/g, '_')}.png`;
-      link.href = imgData;
-      link.click();
-      
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 2500);
+      // Clean Blob delivery structure
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          const imgData = canvas.toDataURL('image/png');
+          setFallbackCardImage(imgData);
+          setDownloadSuccess(true);
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `Member_Card_ECI_${record.fullName.replace(/\s+/g, '_')}.png`;
+        link.href = url;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Populate fallback image preview stream
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFallbackCardImage(reader.result as string);
+        };
+        reader.readAsDataURL(blob);
+
+        setDownloadSuccess(true);
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          setDownloadSuccess(false);
+        }, 3000);
+      }, 'image/png');
+
     } catch (err) {
       console.error('Error generating card download:', err);
     } finally {
@@ -222,19 +248,68 @@ export default function MemberCard({ record }: MemberCardProps) {
       </div>
 
       {/* Download Action Trigger */}
-      <button
-        id="download-card-btn"
-        onClick={handleDownload}
-        disabled={downloading}
-        className={`mt-4 px-5 py-2.5 rounded-lg text-[11.5px] font-medium transition-all duration-300 flex items-center space-x-2 shadow-soft border ${
-          downloadSuccess 
-            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-slate-900 cursor-pointer'
-        }`}
-      >
-        <Download className={`w-4 h-4 ${downloading ? 'animate-bounce' : ''}`} />
-        <span>{downloading ? 'Mengekspor Kartu...' : downloadSuccess ? 'Tersimpan!' : 'Download Member Card (PNG)'}</span>
-      </button>
+      <div className="flex flex-col items-center mt-4">
+        <button
+          id="download-card-btn"
+          onClick={handleDownload}
+          disabled={downloading}
+          className={`px-5 py-2.5 rounded-lg text-[11.5px] font-medium transition-all duration-300 flex items-center space-x-2 shadow-soft border ${
+            downloadSuccess 
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-slate-900 cursor-pointer'
+          }`}
+        >
+          <Download className={`w-4 h-4 ${downloading ? 'animate-bounce' : ''}`} />
+          <span>{downloading ? 'Mengekspor Kartu...' : 'Download Member Card (PNG)'}</span>
+        </button>
+
+        {fallbackCardImage && (
+          <p className="text-[10px] text-slate-400 mt-2 text-center max-w-xs">
+            Jika unduhan otomatis diblokir, silakan klik tombol di bawah untuk melihat gambar dan menyimpannya secara manual.
+          </p>
+        )}
+      </div>
+
+      {/* Fallback Image Backdrop Modal (Absolutely foolproof for any sandbox browser) */}
+      {fallbackCardImage && (
+        <div id="modal-card-fallback" className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-xs p-6 shadow-xl relative my-8">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3.5 mb-4">
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 font-heading tracking-wide uppercase">KARTU SIAP DISIMPAN</h3>
+                <p className="text-[10px] text-slate-400 font-smooth mt-0.5">Ketuk lama pada gambar (di HP) atau klik kanan kemudian pilih "Simpan Gambar" (di komputer).</p>
+              </div>
+              <button 
+                id="close-fallback-card-modal-btn"
+                onClick={() => setFallbackCardImage(null)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-lg transition-colors font-semibold"
+              >
+                Tutup
+              </button>
+            </div>
+
+            <div className="border border-slate-150 rounded-xl overflow-hidden bg-slate-50 flex justify-center max-h-[50vh] overflow-y-auto p-4">
+              <div className="max-w-[220px]">
+                <img 
+                  src={fallbackCardImage} 
+                  alt="Member Card" 
+                  className="w-full h-auto object-contain select-text"
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 pt-3.5 border-t border-slate-100 text-center">
+              <button
+                id="close-fallback-card-modal-bottom-btn"
+                onClick={() => setFallbackCardImage(null)}
+                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold tracking-wide transition-all duration-200"
+              >
+                Selesai / Mengerti
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

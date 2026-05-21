@@ -46,6 +46,8 @@ export default function SuratFormulir({ record }: SuratFormulirProps) {
   }, []);
 
   // Function to download the printable sheet as a PNG image
+  const [fallbackImage, setFallbackImage] = useState<string | null>(null);
+
   const handleDownload = async () => {
     if (!paperRef.current) return;
     try {
@@ -78,15 +80,40 @@ export default function SuratFormulir({ record }: SuratFormulirProps) {
       paperRef.current.style.width = originalWidth;
       paperRef.current.style.minHeight = originalMinHeight;
 
-      // Construct file link and trigger
-      const imgData = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `Surat_Pendaftaran_ECI_${record.fullName.replace(/\s+/g, '_')}.png`;
-      link.href = imgData;
-      link.click();
-      
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 2500);
+      // Construct file link and trigger with blob instead of data URI for sandbox compliance
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          // Fallback to dataURL if blob fails
+          const imgData = canvas.toDataURL('image/png');
+          setFallbackImage(imgData);
+          setDownloadSuccess(true);
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `Surat_Pendaftaran_ECI_${record.fullName.replace(/\s+/g, '_')}.png`;
+        link.href = url;
+        
+        // Append to body temporarily for Firefox compatibility
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // High visibility fallback preview set
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFallbackImage(reader.result as string);
+        };
+        reader.readAsDataURL(blob);
+
+        setDownloadSuccess(true);
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          setDownloadSuccess(false);
+        }, 3000);
+      }, 'image/png');
+
     } catch (err) {
       console.error('Error generating image download:', err);
     } finally {
@@ -135,7 +162,7 @@ export default function SuratFormulir({ record }: SuratFormulirProps) {
                   Yayasan Pembinaan dan Pemberdayaan Pendidikan Indonesia
                 </p>
                 <p className="text-[8px] text-slate-400 font-mono mt-0.5 uppercase">
-                  Website: eci-community.vercel.app | Email: ecicommunity@gmail.com
+                  Website: eci-community.or.id | Email: info@eci-community.or.id
                 </p>
               </div>
             </div>
@@ -192,12 +219,12 @@ export default function SuratFormulir({ record }: SuratFormulirProps) {
               <span className="font-semibold text-sky-700">: {record.interest}</span>
 
               <span className="text-slate-500 block self-start">Pengetahuan Minat</span>
-              <span className="leading-relaxed text-slate-700 italic border-l-2 border-slate-100 pl-2">
+              <span className="leading-relaxed text-slate-700 italic border-l-2 border-slate-100 pl-2 text-justify mr-2">
                 : "{record.interestKnowledge}"
               </span>
 
               <span className="text-slate-500 block self-start">Alasan Bergabung</span>
-              <span className="leading-relaxed text-slate-700 italic border-l-2 border-slate-100 pl-2">
+              <span className="leading-relaxed text-slate-700 italic border-l-2 border-slate-100 pl-2 text-justify mr-2">
                 : "{record.joinReason}"
               </span>
             </div>
@@ -238,8 +265,8 @@ export default function SuratFormulir({ record }: SuratFormulirProps) {
                 <span className="font-mono text-slate-400 text-[8.5px] block absolute right-4 bottom-0">Tanda Tangan Digital</span>
               </div>
 
-              <p className="font-bold text-slate-900 uppercase">✜ 𝘒𝘴𝘦𝘯𝘴 𝘚𝘤𝘩𝘸𝘢𝘳𝘻𝘳𝘪𝘵𝘵𝘦𝘳</p>
-              <p className="text-[9px] text-slate-400 font-mono">Kaiser/Pemimpin tertinggi ECI</p>
+              <p className="font-bold text-slate-900 uppercase">M. Fadhil Rahman</p>
+              <p className="text-[9px] text-slate-400 font-mono">Ketua Umum ECI Pusat</p>
             </div>
           </div>
 
@@ -255,19 +282,75 @@ export default function SuratFormulir({ record }: SuratFormulirProps) {
       </div>
 
       {/* Download trigger */}
-      <button
-        id="download-letter-btn"
-        onClick={handleDownload}
-        disabled={downloading}
-        className={`mt-4 px-5 py-2.5 rounded-lg text-[11.5px] font-medium transition-all duration-300 flex items-center space-x-2 shadow-soft border ${
-          downloadSuccess 
-            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-slate-900 cursor-pointer'
-        }`}
-      >
-        <Download className={`w-4 h-4 ${downloading ? 'animate-bounce' : ''}`} />
-        <span>{downloading ? 'Mengekspor Surat...' : downloadSuccess ? 'Tersimpan!' : 'Download Surat Formulir (PNG)'}</span>
-      </button>
+      <div className="flex flex-col items-center mt-4">
+        <button
+          id="download-letter-btn"
+          onClick={handleDownload}
+          disabled={downloading}
+          className={`px-5 py-2.5 rounded-lg text-[11.5px] font-medium transition-all duration-300 flex items-center space-x-2 shadow-soft border ${
+            downloadSuccess 
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-slate-900 cursor-pointer'
+          }`}
+        >
+          <Download className={`w-4 h-4 ${downloading ? 'animate-bounce' : ''}`} />
+          <span>{downloading ? 'Mengekspor Surat...' : 'Download Surat Formulir (PNG)'}</span>
+        </button>
+
+        {fallbackImage && (
+          <p className="text-[10px] text-slate-400 mt-2 text-center max-w-xs">
+            Jika unduhan otomatis diblokir, silakan klik tombol di bawah untuk melihat gambar dan menyimpannya secara manual.
+          </p>
+        )}
+
+        {fallbackImage && (
+          <button
+            id="view-rendered-letter-btn"
+            onClick={() => {}}
+            className="mt-2 text-[10.5px] font-mono text-sky-600 hover:underline bg-sky-50 px-3 py-1.5 rounded-md"
+            style={{ display: 'none' }} /* Trigger is replaced by persistent help overlay below for max foolproofness */
+          />
+        )}
+      </div>
+
+      {/* Fallback Image Backdrop Modal (Absolutely foolproof for any sandbox browser) */}
+      {fallbackImage && (
+        <div id="modal-letter-fallback" className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl relative my-8">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3.5 mb-4">
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 font-heading tracking-wide uppercase">DOKUMEN SIAP DISIMPAN</h3>
+                <p className="text-[10px] text-slate-400 font-smooth mt-0.5">Ketuk lama pada gambar (di HP) atau klik kanan kemudian pilih "Simpan Gambar" (di komputer).</p>
+              </div>
+              <button 
+                id="close-fallback-letter-modal-btn"
+                onClick={() => setFallbackImage(null)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-lg transition-colors font-semibold"
+              >
+                Tutup
+              </button>
+            </div>
+
+            <div className="border border-slate-150 rounded-xl overflow-hidden bg-slate-50 flex justify-center max-h-[60vh] overflow-y-auto">
+              <img 
+                src={fallbackImage} 
+                alt="Bukti Formulir" 
+                className="w-full h-auto object-contain select-text"
+              />
+            </div>
+
+            <div className="mt-5 pt-3.5 border-t border-slate-100 text-center">
+              <button
+                id="close-fallback-letter-modal-bottom-btn"
+                onClick={() => setFallbackImage(null)}
+                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold tracking-wide transition-all duration-200"
+              >
+                Selesai / Mengerti
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
